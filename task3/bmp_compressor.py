@@ -4,9 +4,7 @@ from abc import ABC, abstractmethod
 from svd_bmp import SVDBmp, SVDOutput, SVD_METADATA_SIZE
 import numpy as np
 from PIL import Image
-
-BMP_CHANNEL_COUNT = 3
-FLOAT_SIZE = 4
+from common_constants import FLOAT_SIZE, BMP_CHANNEL_COUNT
 
 
 class SVDCompressor(ABC):
@@ -25,7 +23,7 @@ class SVDCompressor(ABC):
         img = Image.open(file_path)
         height = img.height
         width = img.width
-        k = math.floor(img_size / (ratio * (SVD_METADATA_SIZE + FLOAT_SIZE * (height + width + 1))))
+        k = math.floor(img_size / (ratio * (SVD_METADATA_SIZE + 3 * FLOAT_SIZE * (height + width + 1))))
 
         img_arrays = np.asarray(img)
         r, g, b = self._compress(img_arrays, k)
@@ -39,7 +37,7 @@ class SVDCompressor(ABC):
         return Image.fromarray(image_matrix)
 
 
-class SimpleSVDCompressor(SVDCompressor, ABC):
+class NumpySVDCompressor(SVDCompressor, ABC):
     def _compress_channel(self, channel: np.ndarray, k: int):
         u, s, vh = np.linalg.svd(channel, full_matrices=False)
         return SVDOutput(u[:, :k], s[:k], vh[:k, :])
@@ -92,7 +90,7 @@ class SVDPowerCompressor(SVDCompressor, ABC):
 class BlockSVDPowerCompressor(SVDCompressor, ABC):
     # https://www.degruyter.com/document/doi/10.1515/jisys-2018-0034/html#j_jisys-2018-0034_fig_004
     def _compress_channel(self, channel: np.ndarray, k: int):
-        eps = 10
+        eps = 0.5
         err = eps + 0.1
 
         u = np.zeros((channel.shape[0], k))

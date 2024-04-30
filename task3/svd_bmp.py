@@ -1,9 +1,8 @@
 import struct
 from dataclasses import dataclass
-import numpy as np
 
-FLOAT_SIZE = 4
-INT_SIZE = 4
+import numpy as np
+from common_constants import FLOAT_SIZE, SVD_BMP_MAGIC, SVD_BMP_MAGIC_SIZE
 
 
 @dataclass
@@ -32,11 +31,6 @@ class SVDOutput:
 
     def to_matrix(self) -> np.array:
         return self.u @ np.diag(self.s) @ self.vh
-
-
-SVD_BMP_MAGIC = b'SVD-BMP'
-SVD_BMP_MAGIC_SIZE = 7
-SVD_METADATA_SIZE = SVD_BMP_MAGIC_SIZE + 3 * INT_SIZE  # magic, height, width, k
 
 
 @dataclass
